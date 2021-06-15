@@ -1,0 +1,2 @@
+PICTURE_FORMATS=.jpg,.bmp,.png,.jpeg,.gif,.svg,.jfif
+DOCUMENTS_FORMATS=.doc,.docx,.pdf,.odt,.txt,.rtf,.abw

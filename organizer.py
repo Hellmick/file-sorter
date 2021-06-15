@@ -1,35 +1,44 @@
-from shutil import move
-from os import listdir, path, makedirs, getlogin
+from shutil import move, Error
+from os import listdir, getlogin
 
 DESKTOP_DIR = "C:\\Users\\%s\\Desktop\\" % (getlogin())
-FOLDERS = {
-    "Pictures": [".jpg", ".png", ".bmp", ".gif", ".jpeg"],
-    "Documents": [".pdf", ".doc", ".docx", ".odt", ".xls", ".ppt", ".csv", ".txt"], 
-    "Projects": [],
-}
 
-while True:
-    
-    for folder in FOLDERS.keys():
-    # gets through all folder names and repeat the loop for each directory in organizer
-        f_dir = DESKTOP_DIR + folder
-        if not path.isdir(f_dir):
-        # if there's no current folder in loop on Desktop, create one
-            makedirs(f_dir)
+def load_config():
+    with open('config.txt') as f:
+        lines = f.readlines()
+        for line in lines:
+            line.replace('\n','')
+        PIC_FORMATS = lines[0].split('=')[1].split(',')
+        DOC_FORMATS = lines[1].split('=')[1].split(',')
 
-        for fileform in FOLDERS[folder]:
-            moved_counter = 0
-            if len(listdir(f_dir)) > 1: 
-                for f in listdir(f_dir):   
-                    if f.endswith(fileform) and not f.endswith(".ini"):
-                        # if any file in current directory ends with any of its formats, move files to the right directory
-                        # also it checks if file's format isn't .ini to avoid a problem with desktop.ini file 
-                        move(f_dir + "\\" + f, "C:\\Users\\%s\\%s" % (getlogin(), folder))
-                        moved_counter += 1 
-                    else:
-                        try:
-                            move(f_dir + "\\" + f, DESKTOP_DIR + "\\")
-                        except:
-                            pass
-                if moved_counter:
-                    print(str(moved_counter) + "files moved!")                    
+        return {'PIC_FORMATS': PIC_FORMATS, 'DOC_FORMATS': DOC_FORMATS}
+
+
+def cleanup():
+    config = load_config()
+    moved_counter = 0
+    unmoved_counter = 0
+
+    for file in listdir(DESKTOP_DIR):
+        for f in config['PIC_FORMATS'] + config['DOC_FORMATS']:
+            if file.endswith(f):
+                try:
+                    if f in config['PIC_FORMATS']:
+                        move(DESKTOP_DIR + file, "C:\\Users\\%s\\%s" % (getlogin(), "Pictures"))
+                    elif f in config['DOC_FORMATS']:
+                        move(DESKTOP_DIR + file, "C:\\Users\\%s\\%s" % (getlogin(), "Documents"))
+                    moved_counter += 1
+                    break
+                except Error:
+                    unmoved_counter += 1
+
+    if moved_counter:
+        print(str(moved_counter) + " files moved!")
+    if unmoved_counter:
+        print(str(unmoved_counter) + " files not moved. Try changing filenames.")
+    if not (moved_counter and unmoved_counter):
+        print("There are no files to move.")
+
+
+if __name__ == "__main__":
+    cleanup()
