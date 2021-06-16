@@ -1,17 +1,28 @@
 from shutil import move, Error
-from os import listdir, getlogin
+from platform import system
+from getpass import getuser
+from os import listdir
+from os.path import expanduser
 
-DESKTOP_DIR = "C:\\Users\\%s\\Desktop\\" % (getlogin())
+DESKTOP_DIR = ""
+
+if system() == 'Windows':
+    DESKTOP_DIR = "C:\\Users\\%s\\Desktop\\" % (getuser())
+elif system() == 'Darwin':
+    DESKTOP_DIR = "/Users/%s/Desktop" % (getuser())
+elif system() == 'Linux':
+    DESKTOP_DIR = expanduser("~") + "/Desktop"
 
 def load_config():
     with open('config.txt') as f:
         lines = f.readlines()
-        for line in lines:
-            line.replace('\n','')
-        PIC_FORMATS = lines[0].split('=')[1].split(',')
-        DOC_FORMATS = lines[1].split('=')[1].split(',')
 
-        return {'PIC_FORMATS': PIC_FORMATS, 'DOC_FORMATS': DOC_FORMATS}
+        return {'PIC_FORMATS': lines[0].split('=')[1].split(','), 
+                'DOC_FORMATS': lines[1].split('=')[1].split(','),
+                'DEFAULT_PICTURES_LOCATION': lines[2].split('=')[1].replace('\n',''),
+                'DEFAULT_DOCUMENTS_LOCATION': lines[3].split('=')[1].replace('\n',''),
+                'CUSTOM_PICTURES_LOCATION': lines[4].split('=')[1].replace('\n',''),
+                'CUSTOM_DOCUMENTS_LOCATION': lines[5].split('=')[1].replace('\n','')}
 
 
 def cleanup():
@@ -24,9 +35,15 @@ def cleanup():
             if file.endswith(f):
                 try:
                     if f in config['PIC_FORMATS']:
-                        move(DESKTOP_DIR + file, "C:\\Users\\%s\\%s" % (getlogin(), "Pictures"))
+                        if config['DEFAULT_PICTURES_LOCATION'] == 'True':
+                            move(DESKTOP_DIR + file, "C:\\Users\\%s\\%s" % (getuser(), "Pictures"))
+                        else:
+                            move(DESKTOP_DIR + file, config['CUSTOM_PICTURES_LOCATION'])
                     elif f in config['DOC_FORMATS']:
-                        move(DESKTOP_DIR + file, "C:\\Users\\%s\\%s" % (getlogin(), "Documents"))
+                        if config['DEFAULT_DOCUMENTS_LOCATION'] == 'True':
+                            move(DESKTOP_DIR + file, "C:\\Users\\%s\\%s" % (getuser(), "Documents"))
+                        else:
+                            move(DESKTOP_DIR + file, config['CUSTOM_DOCUMENTS_LOCATION'])
                     moved_counter += 1
                     break
                 except Error:
@@ -36,7 +53,7 @@ def cleanup():
         print(str(moved_counter) + " files moved!")
     if unmoved_counter:
         print(str(unmoved_counter) + " files not moved. Try changing filenames.")
-    if not (moved_counter and unmoved_counter):
+    if not (moved_counter or unmoved_counter):
         print("There are no files to move.")
 
 
