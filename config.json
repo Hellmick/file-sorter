@@ -1,0 +1,8 @@
+{
+    "PICTURE_FORMATS": [".jpg",".bmp",".png",".jpeg",".gif",".svg",".jfif"],
+    "DOCUMENTS_FORMATS": [".doc",".docx",".pdf",".odt",".txt",".rtf",".abw"],
+    "DEFAULT_PICTURES_LOCATION": "True",
+    "DEFAULT_DOCUMENTS_LOCATION": "True",
+    "CUSTOM_PICTURES_LOCATION": "C:\\Users\\ASUS\\Pictures",
+    "CUSTOM_DOCUMENTS_LOCATION": "C:\\Users\\ASUS\\Documents"
+}
